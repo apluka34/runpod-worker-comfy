@@ -22,6 +22,7 @@ cd ../..
 git clone https://github.com/cubiq/ComfyUI_InstantID.git custom_nodes/ComfyUI_InstantID
 cd custom_nodes/ComfyUI_InstantID
 git checkout 72495e806bc2ab9c41581e15ccaa1bcf83c477e8
+pip install -r requirements.txt
 
 # Move snapshot file to startup-scripts
 #mv /snapshot.json snapshots/restore-snapshot.json
