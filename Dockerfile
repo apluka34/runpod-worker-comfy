@@ -68,7 +68,7 @@ RUN mkdir -p models/checkpoints
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget -O "models/checkpoints/albedobasexl_v21.safetensors" "https://huggingface.co/artificialguybr/albedobasexl-safetensors/resolve/main/albedobaseXL_v21.safetensors"; \
     elif [ "$MODEL_TYPE" = "realvisxl" ]; then \
-      wget -O "models/checkpoints/realvisxl_v40_lightning.safetensors" "https://huggingface.co/SG161222/RealVisXL_V4.0_Lightning/resolve/main/RealVisXL_V4.0_Lightning.safetensors"; \
+      wget -O "models/checkpoints/RealVisXL_V4.0_Lightning.safetensors" "https://huggingface.co/SG161222/RealVisXL_V4.0_Lightning/resolve/main/RealVisXL_V4.0_Lightning.safetensors"; \
     fi
 
 # Download models for digital_avatar task
@@ -83,6 +83,16 @@ FROM base AS final
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
+
+# Move InsightFace models to correct location and clean up
+RUN if [ -d "/comfyui/models/insightface/models/antelopev2/antelopev2" ]; then \
+      echo "Moving InsightFace models to correct location..." && \
+      mv /comfyui/models/insightface/models/antelopev2/antelopev2/* /comfyui/models/insightface/models/antelopev2/ && \
+      rm -rf /comfyui/models/insightface/models/antelopev2/antelopev2 && \
+      echo "InsightFace models moved successfully"; \
+    else \
+      echo "InsightFace model directory structure is already correct"; \
+    fi
 
 # Start container
 CMD ["/start.sh"]
