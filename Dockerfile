@@ -54,7 +54,6 @@ CMD ["/start.sh"]
 # Stage 2: Download models
 FROM base AS downloader
 
-ARG HUGGINGFACE_ACCESS_TOKEN
 ARG MODEL_TYPE
 ARG TASK
 
@@ -75,7 +74,7 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
 RUN if [ "$TASK" = "digital_avatar" ]; then \
       mkdir -p /comfyui/models/instantid 2>/dev/null || true && \
       wget -O "/comfyui/models/instantid/ip-adapter.bin" "https://huggingface.co/InstantX/InstantID/resolve/main/ip-adapter.bin" && \
-      wget -O "/comfyui/models/instantid/diffusion_pytorch_model.safetensors" "https://huggingface.co/InstantX/InstantID/resolve/main/ControlNetModel/diffusion_pytorch_model.safetensors"; \
+      wget -O "/comfyui/models/controlnet/diffusion_pytorch_model.safetensors" "https://huggingface.co/InstantX/InstantID/resolve/main/ControlNetModel/diffusion_pytorch_model.safetensors"; \
     fi
 
 # Stage 3: Final image
