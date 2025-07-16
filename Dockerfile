@@ -24,7 +24,7 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 
 WORKDIR /comfyui
 
-RUN git checkout af93c8d1ee4be91f30ffd395ea6919e6f83923aa
+RUN git checkout 50afba747cd3413a6f6eb6703c627a24d2e6f165
 
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && pip3 install --upgrade -r requirements.txt
@@ -56,6 +56,7 @@ FROM base AS downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
 ARG MODEL_TYPE
+ARG TASK
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
@@ -65,19 +66,23 @@ RUN mkdir -p models/checkpoints
 
 # Download checkpoints/vae/LoRA to include in image based on model type
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
-      wget -O models/checkpoints/sd_xl_base_1.0.safetensors https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors; \
-    elif [ "$MODEL_TYPE" = "ai-background" ]; then \
-      wget -O "models/checkpoints/coseditxl.safetensors" "https://civitai.com/api/download/models/642159?type=Model&format=SafeTensor&size=pruned&fp=fp16" && \
-      wget -O "models/upscale_models/RealESRGAN_x4plus.pth" "https://huggingface.co/lllyasviel/Annotators/resolve/main/RealESRGAN_x4plus.pth" && \
-      wget -O "custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4/model.pth" "https://huggingface.co/briaai/RMBG-1.4/resolve/main/model.pth"; \
+      wget -O "models/checkpoints/albedobasexl_v21.safetensors" "https://huggingface.co/artificialguybr/albedobasexl-safetensors/resolve/main/albedobaseXL_v21.safetensors"; \
+    elif [ "$MODEL_TYPE" = "realvisxl" ]; then \
+      wget -O "models/checkpoints/realvisxl_v40_lightning.safetensors" "https://huggingface.co/SG161222/RealVisXL_V4.0_Lightning/resolve/main/RealVisXL_V4.0_Lightning.safetensors"; \
     fi
-    
+
+# Download models for digital_avatar task
+RUN if [ "$TASK" = "digital_avatar" ]; then \
+      mkdir -p /comfyui/models/instantid 2>/dev/null || true && \
+      wget -O "/comfyui/models/instantid/ip-adapter.bin" "https://huggingface.co/InstantX/InstantID/resolve/main/ip-adapter.bin" && \
+      wget -O "/comfyui/models/instantid/diffusion_pytorch_model.safetensors" "https://huggingface.co/InstantX/InstantID/resolve/main/ControlNetModel/diffusion_pytorch_model.safetensors"; \
+    fi
+
 # Stage 3: Final image
 FROM base AS final
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
-COPY --from=downloader /comfyui/custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4 /comfyui/custom_nodes/ComfyUI-BRIA_AI-RMBG/RMBG-1.4
 
 # Start container
 CMD ["/start.sh"]
